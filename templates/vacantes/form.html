@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Crear{% endif %} Vacante{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{% if form.instance.pk %}Editar{% else %}Crear Nueva{% endif %} Vacante</h1>
+</div>
+
+<div class="form-container">
+    <form method="post" class="standard-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="id_empresa">Empresa *</label>
+            {{ form.empresa }}
+            {% if form.empresa.errors %}
+                <span class="error">{{ form.empresa.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="id_titulo">Título del Puesto *</label>
+            {{ form.titulo }}
+            {% if form.titulo.errors %}
+                <span class="error">{{ form.titulo.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="id_descripcion">Descripción *</label>
+            {{ form.descripcion }}
+            {% if form.descripcion.errors %}
+                <span class="error">{{ form.descripcion.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="id_requisitos">Requisitos *</label>
+            {{ form.requisitos }}
+            {% if form.requisitos.errors %}
+                <span class="error">{{ form.requisitos.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_ubicacion">Ubicación *</label>
+                {{ form.ubicacion }}
+                {% if form.ubicacion.errors %}
+                    <span class="error">{{ form.ubicacion.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_area_practica">Área de Práctica *</label>
+                {{ form.area_practica }}
+                {% if form.area_practica.errors %}
+                    <span class="error">{{ form.area_practica.errors.0 }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_modalidad">Modalidad *</label>
+                {{ form.modalidad }}
+                {% if form.modalidad.errors %}
+                    <span class="error">{{ form.modalidad.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_jornada">Jornada *</label>
+                {{ form.jornada }}
+                {% if form.jornada.errors %}
+                    <span class="error">{{ form.jornada.errors.0 }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_duracion_meses">Duración (meses) *</label>
+                {{ form.duracion_meses }}
+                {% if form.duracion_meses.errors %}
+                    <span class="error">{{ form.duracion_meses.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_numero_vacantes">Número de Vacantes *</label>
+                {{ form.numero_vacantes }}
+                {% if form.numero_vacantes.errors %}
+                    <span class="error">{{ form.numero_vacantes.errors.0 }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_salario_minimo">Salario Mínimo</label>
+                {{ form.salario_minimo }}
+                {% if form.salario_minimo.errors %}
+                    <span class="error">{{ form.salario_minimo.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_salario_maximo">Salario Máximo</label>
+                {{ form.salario_maximo }}
+                {% if form.salario_maximo.errors %}
+                    <span class="error">{{ form.salario_maximo.errors.0 }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_habilidades_requeridas">Habilidades Requeridas</label>
+            {{ form.habilidades_requeridas }}
+            {% if form.habilidades_requeridas.errors %}
+                <span class="error">{{ form.habilidades_requeridas.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="id_beneficios">Beneficios</label>
+            {{ form.beneficios }}
+            {% if form.beneficios.errors %}
+                <span class="error">{{ form.beneficios.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'vacantes_list' %}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %} Vacante
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

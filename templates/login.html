@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar Sesión - Prácticas Profesionales{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h1>Prácticas Profesionales</h1>
+            <p>Inicia sesión para continuar</p>
+        </div>
+
+        <form method="post" class="login-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    class="form-control" 
+                    required
+                    autofocus
+                    value="{{ form.username.value|default:'' }}"
+                >
+                {% if form.username.errors %}
+                    <span class="error">{{ form.username.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    class="form-control" 
+                    required
+                >
+                {% if form.password.errors %}
+                    <span class="error">{{ form.password.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {{ form.non_field_errors.0 }}
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary btn-block">
+                Iniciar Sesión
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <p>Usuario de prueba:</p>
+            <p><strong>admin</strong> / <strong>admin123</strong></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

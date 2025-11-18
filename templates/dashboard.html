@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Prácticas Profesionales{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>Bienvenido, {{ user.get_full_name|default:user.username }}</h1>
+    <p class="subtitle">Rol: {{ user.get_role_display }}</p>
+
+    <div class="stats-grid">
+        {% if user.role == 'COORDINADOR' %}
+        <div class="stat-card">
+            <h3>{{ stats.total_estudiantes }}</h3>
+            <p>Estudiantes</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ stats.total_vacantes }}</h3>
+            <p>Vacantes</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ stats.total_practicas }}</h3>
+            <p>Prácticas Activas</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ stats.total_postulaciones }}</h3>
+            <p>Postulaciones</p>
+        </div>
+        {% elif user.role == 'PROFESOR' %}
+        <div class="stat-card">
+            <h3>{{ stats.estudiantes_asignados }}</h3>
+            <p>Estudiantes Asignados</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ stats.practicas_supervisadas }}</h3>
+            <p>Prácticas Supervisadas</p>
+        </div>
+        {% elif user.role == 'ESTUDIANTE' %}
+        <div class="stat-card">
+            <h3>{{ stats.postulaciones }}</h3>
+            <p>Postulaciones</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ stats.practica_activa|yesno:"Sí,No" }}</h3>
+            <p>Práctica Activa</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="quick-actions">
+        <h2>Acciones Rápidas</h2>
+        <div class="actions-grid">
+            {% if user.role == 'COORDINADOR' %}
+            <a href="{% url 'estudiantes_list' %}" class="action-card">
+                <h3>Gestionar Estudiantes</h3>
+                <p>Ver, crear y editar estudiantes</p>
+            </a>
+            <a href="{% url 'vacantes_list' %}" class="action-card">
+                <h3>Gestionar Vacantes</h3>
+                <p>Ver, crear y publicar vacantes</p>
+            </a>
+            {% elif user.role == 'PROFESOR' %}
+            <a href="#" class="action-card">
+                <h3>Mis Estudiantes</h3>
+                <p>Ver estudiantes asignados</p>
+            </a>
+            <a href="#" class="action-card">
+                <h3>Evaluaciones</h3>
+                <p>Evaluar prácticas</p>
+            </a>
+            {% elif user.role == 'ESTUDIANTE' %}
+            <a href="#" class="action-card">
+                <h3>Vacantes Disponibles</h3>
+                <p>Explorar oportunidades</p>
+            </a>
+            <a href="#" class="action-card">
+                <h3>Mi Práctica</h3>
+                <p>Ver detalles de mi práctica</p>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

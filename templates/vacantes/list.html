@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Vacantes - Prácticas Profesionales{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Gestión de Vacantes</h1>
+    <a href="{% url 'vacante_create' %}" class="btn btn-primary">+ Nueva Vacante</a>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Empresa</th>
+                <th>Ubicación</th>
+                <th>Apoyo Mensual</th>
+                <th>Vacantes</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for vacante in vacantes %}
+            <tr>
+                <td>{{ vacante.titulo }}</td>
+                <td>{{ vacante.empresa.nombre }}</td>
+                <td>{{ vacante.ubicacion }}</td>
+                <td>{% if vacante.remunerada %}${{ vacante.monto_apoyo|default:"N/A"|floatformat:0 }}{% else %}No{% endif %}</td>
+                <td>{{ vacante.vacantes_disponibles }}</td>
+                <td>
+                    <span class="badge badge-{{ vacante.estado|lower }}">
+                        {{ vacante.get_estado_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'vacante_edit' vacante.pk %}" class="btn btn-sm btn-info">Editar</a>
+                    {% if vacante.estado == 'BORRADOR' or vacante.estado == 'PAUSADA' %}
+                    <a href="{% url 'vacante_publish' vacante.pk %}" class="btn btn-sm btn-success">Abrir</a>
+                    {% elif vacante.estado == 'ABIERTA' %}
+                    <a href="{% url 'vacante_close' vacante.pk %}" class="btn btn-sm btn-warning">Cerrar</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No hay vacantes registradas</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

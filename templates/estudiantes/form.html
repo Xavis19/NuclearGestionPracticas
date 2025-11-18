@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Crear{% endif %} Estudiante{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{% if form.instance.pk %}Editar{% else %}Crear Nuevo{% endif %} Estudiante</h1>
+</div>
+
+<div class="form-container">
+    <form method="post" class="standard-form">
+        {% csrf_token %}
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_username">Usuario *</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <span class="error">{{ form.username.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_matricula">Matrícula *</label>
+                {{ form.matricula }}
+                {% if form.matricula.errors %}
+                    <span class="error">{{ form.matricula.errors.0 }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_first_name">Nombre *</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                    <span class="error">{{ form.first_name.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_last_name">Apellidos *</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    <span class="error">{{ form.last_name.errors.0 }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_email">Email *</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <span class="error">{{ form.email.errors.0 }}</span>
+            {% endif %}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_carrera">Carrera *</label>
+                {{ form.carrera }}
+                {% if form.carrera.errors %}
+                    <span class="error">{{ form.carrera.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_semestre">Semestre *</label>
+                {{ form.semestre }}
+                {% if form.semestre.errors %}
+                    <span class="error">{{ form.semestre.errors.0 }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if not form.instance.pk %}
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_password1">Contraseña *</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                    <span class="error">{{ form.password1.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="id_password2">Confirmar Contraseña *</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                    <span class="error">{{ form.password2.errors.0 }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <a href="{% url 'estudiantes_list' %}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %} Estudiante
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

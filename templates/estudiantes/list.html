@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Estudiantes - Prácticas Profesionales{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Gestión de Estudiantes</h1>
+    <a href="{% url 'estudiante_create' %}" class="btn btn-primary">+ Nuevo Estudiante</a>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Matrícula</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Carrera</th>
+                <th>Semestre</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for estudiante in estudiantes %}
+            <tr>
+                <td>{{ estudiante.matricula }}</td>
+                <td>{{ estudiante.get_full_name }}</td>
+                <td>{{ estudiante.email }}</td>
+                <td>{{ estudiante.carrera }}</td>
+                <td>{{ estudiante.semestre }}</td>
+                <td>
+                    <span class="badge {% if estudiante.is_active %}badge-success{% else %}badge-danger{% endif %}">
+                        {% if estudiante.is_active %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'estudiante_edit' estudiante.pk %}" class="btn btn-sm btn-info">Editar</a>
+                    {% if estudiante.is_active %}
+                    <a href="{% url 'estudiante_deactivate' estudiante.pk %}" class="btn btn-sm btn-warning">Desactivar</a>
+                    {% else %}
+                    <a href="{% url 'estudiante_activate' estudiante.pk %}" class="btn btn-sm btn-success">Activar</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No hay estudiantes registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
