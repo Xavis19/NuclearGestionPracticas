@@ -234,9 +234,10 @@ AXES_LOCKOUT_PARAMETERS = [["username"]]  # Solo bloquear por username
 AXES_RESET_ON_SUCCESS = True
 AXES_VERBOSE = True
 AXES_ENABLE_ACCESS_FAILURE_LOG = True
+# Cambiar orden: Backend personalizado primero, luego Axes
 AUTHENTICATION_BACKENDS = [
-    'axes.backends.AxesStandaloneBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    'apps.usuarios.backends.EmailOrUsernameModelBackend',  # Backend personalizado que permite email O username
+    'axes.backends.AxesBackend',  # Cambio a AxesBackend en vez de AxesStandaloneBackend
 ]
 
 # Celery Configuration

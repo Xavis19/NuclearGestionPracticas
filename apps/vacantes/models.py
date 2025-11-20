@@ -108,8 +108,10 @@ class Vacante(models.Model):
         verbose_name='Carreras Solicitadas'
     )
     semestre_minimo = models.IntegerField(
+        default=4,
         validators=[MinValueValidator(1)],
-        verbose_name='Semestre Mínimo'
+        verbose_name='Semestre Mínimo',
+        help_text='Semestre mínimo requerido (por defecto 4to semestre para prácticas profesionales)'
     )
     promedio_minimo = models.DecimalField(
         max_digits=4,

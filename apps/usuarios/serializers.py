@@ -116,35 +116,128 @@ class ProfesorSerializer(serializers.ModelSerializer):
     """Serializer para Profesores."""
     
     full_name = serializers.SerializerMethodField()
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+        style={'input_type': 'password'}
+    )
+    password_confirm = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'}
+    )
     
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'email', 'first_name', 'last_name',
-            'full_name', 'phone', 'departamento', 'especialidad',
+            'id', 'username', 'email', 'password', 'password_confirm',
+            'first_name', 'last_name', 'full_name', 'phone', 
+            'departamento', 'especialidad',
             'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'email': {'required': True},
+            'first_name': {'required': True},
+            'last_name': {'required': True},
+            'username': {'required': True},
+        }
     
     def get_full_name(self, obj):
         return obj.get_full_name()
+    
+    def validate(self, attrs):
+        """Validar que las contraseñas coincidan."""
+        if attrs.get('password') != attrs.get('password_confirm'):
+            raise serializers.ValidationError({
+                'password_confirm': 'Las contraseñas no coinciden.'
+            })
+        return attrs
+    
+    @transaction.atomic
+    def create(self, validated_data):
+        """Crear profesor con transacción atómica."""
+        # Remover password_confirm
+        validated_data.pop('password_confirm', None)
+        
+        # Extraer password
+        password = validated_data.pop('password')
+        
+        # Establecer rol como PROFESOR
+        validated_data['role'] = User.PROFESOR
+        
+        # Crear usuario
+        user = User.objects.create_user(
+            password=password,
+            **validated_data
+        )
+        
+        return user
 
 
 class CoordinadorSerializer(serializers.ModelSerializer):
     """Serializer para Coordinadores."""
     
     full_name = serializers.SerializerMethodField()
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+        style={'input_type': 'password'}
+    )
+    password_confirm = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'}
+    )
     
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'email', 'first_name', 'last_name',
-            'full_name', 'phone', 'is_active', 'created_at', 'updated_at'
+            'id', 'username', 'email', 'password', 'password_confirm',
+            'first_name', 'last_name', 'full_name', 'phone', 
+            'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'email': {'required': True},
+            'first_name': {'required': True},
+            'last_name': {'required': True},
+            'username': {'required': True},
+        }
     
     def get_full_name(self, obj):
         return obj.get_full_name()
+    
+    def validate(self, attrs):
+        """Validar que las contraseñas coincidan."""
+        if attrs.get('password') != attrs.get('password_confirm'):
+            raise serializers.ValidationError({
+                'password_confirm': 'Las contraseñas no coinciden.'
+            })
+        return attrs
+    
+    @transaction.atomic
+    def create(self, validated_data):
+        """Crear coordinador con transacción atómica."""
+        # Remover password_confirm
+        validated_data.pop('password_confirm', None)
+        
+        # Extraer password
+        password = validated_data.pop('password')
+        
+        # Establecer rol como COORDINADOR
+        validated_data['role'] = User.COORDINADOR
+        validated_data['is_staff'] = True
+        
+        # Crear usuario
+        user = User.objects.create_user(
+            password=password,
+            **validated_data
+        )
+        
+        return user
 
 
 class ChangePasswordSerializer(serializers.Serializer):
