@@ -243,3 +243,102 @@ def vacante_close(request, pk):
     vacante.save()
     messages.success(request, f'Vacante "{vacante.titulo}" cerrada')
     return redirect('vacantes_list')
+
+
+@login_required
+def dashboard_coordinadora(request):
+    """Dashboard para Coordinadora Empresarial"""
+    from django.db.models import Avg
+    from apps.usuarios.decorators import role_required
+    from apps.entregables.models import Entregable
+    
+    # Verificar permisos
+    if request.user.role != 'COORDINADORA_EMPRESARIAL':
+        messages.error(request, 'No tienes permiso para acceder a esta página')
+        return redirect('config:dashboard')
+    
+    # Estadísticas generales
+    total_estudiantes = User.objects.filter(role='ESTUDIANTE').count()
+    practicas_activas = Practica.objects.filter(estado__in=['EN_PROCESO', 'INICIADA']).count()
+    empresas_activas = Empresa.objects.filter(activa=True).count()
+    vacantes_disponibles = Vacante.objects.filter(estado='ABIERTA').count()
+    
+    # Prácticas que requieren atención
+    practicas_alerta = Practica.objects.filter(
+        estado='EN_PROCESO'
+    ).select_related('estudiante', 'empresa', 'docente_asesor')[:5]
+    
+    # Agregar alertas a las prácticas
+    for practica in practicas_alerta:
+        entregables_pendientes = practica.entregables.filter(
+            estado='PENDIENTE',
+            fecha_limite__lt=timezone.now()
+        ).count()
+        if entregables_pendientes > 0:
+            practica.alerta = f'{entregables_pendientes} entregables vencidos'
+        else:
+            practica.alerta = 'Sin alertas'
+    
+    # Resumen de calificaciones (SOLO LECTURA)
+    estudiantes_con_notas = []
+    practicas_con_notas = Practica.objects.filter(
+        estado__in=['EN_PROCESO', 'FINALIZADA']
+    ).select_related('estudiante', 'empresa')
+    
+    for practica in practicas_con_notas[:10]:
+        entregables = practica.entregables.all()
+        total_entregables = entregables.count()
+        entregables_evaluados = entregables.filter(calificacion__isnull=False).count()
+        promedio = entregables.filter(
+            calificacion__isnull=False
+        ).aggregate(Avg('calificacion'))['calificacion__avg'] or 0
+        
+        estudiantes_con_notas.append({
+            'id': practica.estudiante.id,
+            'nombre': practica.estudiante.get_full_name(),
+            'empresa': practica.empresa.nombre if practica.empresa else 'N/A',
+            'total_entregables': total_entregables,
+            'entregables_evaluados': entregables_evaluados,
+            'promedio': promedio,
+        })
+    
+    # Actividad reciente del sistema
+    from django.utils import timezone
+    actividades_recientes = []
+    
+    # Últimas prácticas asignadas
+    ultimas_practicas = Practica.objects.all().order_by('-fecha_inicio')[:5]
+    for practica in ultimas_practicas:
+        actividades_recientes.append({
+            'fecha': practica.fecha_inicio,
+            'usuario': practica.estudiante.get_full_name(),
+            'descripcion': f'Inició práctica en {practica.empresa.nombre if practica.empresa else "N/A"}'
+        })
+    
+    # Últimos entregables evaluados
+    ultimos_entregables = Entregable.objects.filter(
+        calificacion__isnull=False
+    ).order_by('-fecha_evaluacion')[:5]
+    for entregable in ultimos_entregables:
+        if entregable.fecha_evaluacion:
+            actividades_recientes.append({
+                'fecha': entregable.fecha_evaluacion,
+                'usuario': entregable.practica.tutor_empresarial.get_full_name() if entregable.practica.tutor_empresarial else 'N/A',
+                'descripcion': f'Evaluó entregable de {entregable.practica.estudiante.get_full_name()}'
+            })
+    
+    # Ordenar por fecha
+    actividades_recientes.sort(key=lambda x: x['fecha'], reverse=True)
+    actividades_recientes = actividades_recientes[:10]
+    
+    context = {
+        'total_estudiantes': total_estudiantes,
+        'practicas_activas': practicas_activas,
+        'empresas_activas': empresas_activas,
+        'vacantes_disponibles': vacantes_disponibles,
+        'practicas_alerta': practicas_alerta,
+        'estudiantes_con_notas': estudiantes_con_notas,
+        'actividades_recientes': actividades_recientes,
+    }
+    
+    return render(request, 'coordinadora/dashboard.html', context)

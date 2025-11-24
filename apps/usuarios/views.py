@@ -114,11 +114,11 @@ class EstudianteViewSet(viewsets.ModelViewSet):
 
 
 class ProfesorViewSet(viewsets.ModelViewSet):
-    """ViewSet para gestión de Profesores."""
+    """ViewSet para gestión de Docentes Asesores."""
     
-    queryset = User.objects.filter(role=User.PROFESOR)
+    queryset = User.objects.filter(role=User.DOCENTE_ASESOR)
     serializer_class = ProfesorSerializer
-    permission_classes = [IsAuthenticated, IsCoordinador]
+    permission_classes = [IsAuthenticated]  # Temporalmente abierto
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['is_active', 'departamento']
     search_fields = ['email', 'first_name', 'last_name', 'especialidad']
@@ -131,7 +131,7 @@ class ProfesorViewSet(viewsets.ModelViewSet):
         profesor = self.get_object()
         # Esto se implementará cuando tengamos el modelo de Práctica
         from apps.practicas.models import Practica
-        practicas = Practica.objects.filter(profesor=profesor)
+        practicas = Practica.objects.filter(docente_asesor=profesor)
         estudiantes_ids = practicas.values_list('estudiante_id', flat=True)
         estudiantes = User.objects.filter(id__in=estudiantes_ids)
         serializer = EstudianteSerializer(estudiantes, many=True)
@@ -139,9 +139,9 @@ class ProfesorViewSet(viewsets.ModelViewSet):
 
 
 class CoordinadorViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet de solo lectura para Coordinadores."""
+    """ViewSet de solo lectura para Coordinadoras Empresariales."""
     
-    queryset = User.objects.filter(role=User.COORDINADOR)
+    queryset = User.objects.filter(role=User.COORDINADORA_EMPRESARIAL)
     serializer_class = CoordinadorSerializer
     permission_classes = [IsAuthenticated, IsCoordinador]
     filter_backends = [SearchFilter, OrderingFilter]

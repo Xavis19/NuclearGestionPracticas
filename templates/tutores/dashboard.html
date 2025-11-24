@@ -1,0 +1,175 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Dashboard - Tutor Empresarial{% endblock %}
+
+{% block sidebar_menu %}
+<!-- Menú lateral para Tutor Empresarial -->
+<div class="menu-section">
+    <h3>Mis Estudiantes</h3>
+    <a href="{% url 'tutores:estudiantes' %}" class="menu-item">
+        <span>📋</span> Ver Estudiantes
+    </a>
+    <a href="{% url 'tutores:progreso' %}" class="menu-item">
+        <span>📊</span> Progreso General
+    </a>
+</div>
+
+<div class="menu-section">
+    <h3>Entregables</h3>
+    <a href="{% url 'entregables:pendientes' %}" class="menu-item">
+        <span>⏳</span> Pendientes de Evaluar
+    </a>
+    <a href="{% url 'entregables:evaluados' %}" class="menu-item">
+        <span>✅</span> Evaluados
+    </a>
+    <a href="{% url 'entregables:historial' %}" class="menu-item">
+        <span>📁</span> Historial
+    </a>
+</div>
+
+<div class="menu-section">
+    <h3>Comunicación</h3>
+    <a href="{% url 'tutores:mensajes' %}" class="menu-item">
+        <span>💬</span> Mensajes
+    </a>
+    <a href="{% url 'tutores:retroalimentacion' %}" class="menu-item">
+        <span>📝</span> Retroalimentación
+    </a>
+</div>
+
+<div class="menu-section">
+    <h3>Encuestas</h3>
+    <a href="{% url 'encuestas:responder' %}" class="menu-item">
+        <span>📋</span> Encuestas Pendientes
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Bienvenido, {{ user.get_full_name }}</h1>
+    <p>Tutor Empresarial - {{ user.empresa.nombre }}</p>
+</div>
+
+<!-- Estadísticas principales -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>{{ total_estudiantes }}</h3>
+        <p>Estudiantes Asignados</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ entregables_pendientes }}</h3>
+        <p>Entregables por Evaluar</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ promedio_general|floatformat:1 }}</h3>
+        <p>Promedio General</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ practicas_activas }}</h3>
+        <p>Prácticas Activas</p>
+    </div>
+</div>
+
+<!-- Entregables pendientes de evaluación -->
+<div class="card">
+    <div class="card-header">
+        <h2>Entregables Pendientes de Evaluación</h2>
+        <a href="{% url 'entregables:pendientes' %}" class="btn-primary">Ver Todos</a>
+    </div>
+    <div class="card-body">
+        <table>
+            <thead>
+                <tr>
+                    <th>Estudiante</th>
+                    <th>Título</th>
+                    <th>Fecha Límite</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entregable in entregables_pendientes_lista %}
+                <tr>
+                    <td>{{ entregable.practica.estudiante.get_full_name }}</td>
+                    <td>{{ entregable.titulo }}</td>
+                    <td>{{ entregable.fecha_limite|date:"d/m/Y" }}</td>
+                    <td>
+                        <span class="badge badge-warning">{{ entregable.get_estado_display }}</span>
+                    </td>
+                    <td>
+                        <a href="{% url 'entregables:evaluar' entregable.id %}" class="btn-action">Evaluar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">No hay entregables pendientes</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Estudiantes asignados -->
+<div class="card">
+    <div class="card-header">
+        <h2>Mis Estudiantes</h2>
+        <a href="{% url 'tutores:estudiantes' %}" class="btn-primary">Ver Todos</a>
+    </div>
+    <div class="card-body">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Carrera</th>
+                    <th>Fecha Inicio</th>
+                    <th>Progreso</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for practica in practicas_activas_lista %}
+                <tr>
+                    <td>{{ practica.estudiante.get_full_name }}</td>
+                    <td>{{ practica.estudiante.carrera }}</td>
+                    <td>{{ practica.fecha_inicio|date:"d/m/Y" }}</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ practica.progreso }}%"></div>
+                        </div>
+                        {{ practica.progreso }}%
+                    </td>
+                    <td>
+                        <a href="{% url 'practicas:detalle' practica.id %}" class="btn-action">Ver Detalle</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">No hay estudiantes asignados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Actividad reciente -->
+<div class="card">
+    <div class="card-header">
+        <h2>Actividad Reciente</h2>
+    </div>
+    <div class="card-body">
+        <ul class="activity-list">
+            {% for actividad in actividades_recientes %}
+            <li>
+                <span class="activity-date">{{ actividad.fecha|date:"d/m/Y H:i" }}</span>
+                <span class="activity-text">{{ actividad.descripcion }}</span>
+            </li>
+            {% empty %}
+            <li>No hay actividad reciente</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

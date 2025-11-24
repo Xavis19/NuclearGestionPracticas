@@ -1,0 +1,215 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Responder Encuesta{% endblock %}
+
+{% block sidebar_menu %}
+<div class="menu-section">
+    <h3>Encuestas</h3>
+    <a href="{% url 'encuestas_web:mis_pendientes' %}" class="menu-item">
+        <span>📋</span> Mis Encuestas Pendientes
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>{{ encuesta.titulo }}</h1>
+    {% if encuesta.es_anonima %}
+        <span class="badge badge-info">Encuesta Anónima</span>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if encuesta.descripcion %}
+        <div class="encuesta-descripcion">
+            <p>{{ encuesta.descripcion }}</p>
+        </div>
+        {% endif %}
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            {% for pregunta in preguntas %}
+            <div class="pregunta-block">
+                <h3>
+                    {{ forloop.counter }}. {{ pregunta.texto }}
+                    {% if pregunta.es_requerida %}
+                        <span style="color: #e74c3c;">*</span>
+                    {% endif %}
+                </h3>
+                
+                {% if pregunta.tipo == 'TEXTO_CORTO' %}
+                    <input type="text" 
+                           name="pregunta_{{ pregunta.id }}" 
+                           class="form-control"
+                           {% if pregunta.es_requerida %}required{% endif %}>
+                
+                {% elif pregunta.tipo == 'TEXTO_LARGO' %}
+                    <textarea name="pregunta_{{ pregunta.id }}" 
+                              class="form-control" 
+                              rows="4"
+                              {% if pregunta.es_requerida %}required{% endif %}></textarea>
+                
+                {% elif pregunta.tipo == 'ESCALA' %}
+                    <div class="escala-container">
+                        <div class="escala-labels">
+                            <span>1 - Muy malo</span>
+                            <span>5 - Excelente</span>
+                        </div>
+                        <div class="escala-opciones">
+                            {% for i in "12345" %}
+                            <label class="radio-option">
+                                <input type="radio" 
+                                       name="pregunta_{{ pregunta.id }}" 
+                                       value="{{ forloop.counter }}"
+                                       {% if pregunta.es_requerida %}required{% endif %}>
+                                <span class="radio-label">{{ forloop.counter }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                
+                {% elif pregunta.tipo == 'SI_NO' %}
+                    <div class="si-no-container">
+                        <label class="radio-option">
+                            <input type="radio" 
+                                   name="pregunta_{{ pregunta.id }}" 
+                                   value="si"
+                                   {% if pregunta.es_requerida %}required{% endif %}>
+                            <span class="radio-label">Sí</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" 
+                                   name="pregunta_{{ pregunta.id }}" 
+                                   value="no"
+                                   {% if pregunta.es_requerida %}required{% endif %}>
+                            <span class="radio-label">No</span>
+                        </label>
+                    </div>
+                
+                {% elif pregunta.tipo == 'SELECCION_UNICA' %}
+                    <div class="opciones-container">
+                        {% for opcion in pregunta.opciones %}
+                        <label class="radio-option">
+                            <input type="radio" 
+                                   name="pregunta_{{ pregunta.id }}" 
+                                   value="{{ opcion }}"
+                                   {% if pregunta.es_requerida %}required{% endif %}>
+                            <span class="radio-label">{{ opcion }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                
+                {% elif pregunta.tipo == 'OPCION_MULTIPLE' %}
+                    <div class="opciones-container">
+                        {% for opcion in pregunta.opciones %}
+                        <label class="checkbox-option">
+                            <input type="checkbox" 
+                                   name="pregunta_{{ pregunta.id }}" 
+                                   value="{{ opcion }}">
+                            <span class="checkbox-label">{{ opcion }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Enviar Respuestas</button>
+                <a href="{% url 'encuestas_web:mis_pendientes' %}" class="btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .encuesta-descripcion {
+        background: #f8f9fa;
+        padding: 15px;
+        border-left: 4px solid #3498db;
+        margin-bottom: 30px;
+    }
+    
+    .pregunta-block {
+        margin-bottom: 35px;
+        padding-bottom: 25px;
+        border-bottom: 1px solid #ecf0f1;
+    }
+    
+    .pregunta-block h3 {
+        margin-bottom: 15px;
+        color: #2c3e50;
+        font-size: 16px;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+    
+    .escala-container {
+        margin-top: 10px;
+    }
+    
+    .escala-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: #7f8c8d;
+    }
+    
+    .escala-opciones {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        padding: 20px 0;
+    }
+    
+    .radio-option, .checkbox-option {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background 0.3s;
+    }
+    
+    .radio-option:hover, .checkbox-option:hover {
+        background: #f8f9fa;
+    }
+    
+    .radio-label, .checkbox-label {
+        margin-left: 8px;
+    }
+    
+    .si-no-container, .opciones-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .form-actions {
+        margin-top: 30px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-secondary {
+        padding: 10px 20px;
+        background: #95a5a6;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+</style>
+{% endblock %}

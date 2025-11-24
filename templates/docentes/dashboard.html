@@ -1,0 +1,162 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Dashboard - Docente Asesor{% endblock %}
+
+{% block sidebar_menu %}
+<div class="menu-section">
+    <div class="menu-section-title">Principal</div>
+    <a href="{% url 'dashboard' %}" class="menu-item active">
+        <span class="menu-item-icon">📊</span>
+        Dashboard
+    </a>
+</div>
+
+<div class="menu-section">
+    <div class="menu-section-title">Mis Estudiantes</div>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">👨‍🎓</span>
+        Lista de Estudiantes
+    </a>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">📈</span>
+        Seguimiento General
+    </a>
+</div>
+
+<div class="menu-section">
+    <div class="menu-section-title">Reuniones</div>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">📅</span>
+        Mis Reuniones
+    </a>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">➕</span>
+        Programar Reunión
+    </a>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">🎓</span>
+        Programar Sustentación
+    </a>
+</div>
+
+<div class="menu-section">
+    <div class="menu-section-title">Entregables</div>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">📁</span>
+        Ver Entregables
+    </a>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">📊</span>
+        Reporte de Avances
+    </a>
+</div>
+
+<div class="menu-section">
+    <div class="menu-section-title">Reportes</div>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">📋</span>
+        Reportes de Seguimiento
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_estudiantes|default:0 }}</div>
+        <div class="stat-label">Estudiantes Asignados</div>
+    </div>
+    <div class="stat-card success">
+        <div class="stat-value">{{ practicas_activas|default:0 }}</div>
+        <div class="stat-label">Prácticas Activas</div>
+    </div>
+    <div class="stat-card warning">
+        <div class="stat-value">{{ reuniones_pendientes|default:0 }}</div>
+        <div class="stat-label">Reuniones Pendientes</div>
+    </div>
+    <div class="stat-card danger">
+        <div class="stat-value">{{ proximas_sustentaciones|default:0 }}</div>
+        <div class="stat-label">Próximas Sustentaciones</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="card-title">Mis Estudiantes</h3>
+    {% if estudiantes %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Estudiante</th>
+                <th>Empresa</th>
+                <th>Estado</th>
+                <th>Próxima Reunión</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for practica in practicas %}
+            <tr>
+                <td>{{ practica.estudiante.get_full_name }}</td>
+                <td>{{ practica.empresa.nombre }}</td>
+                <td><span class="badge badge-success">{{ practica.get_estado_display }}</span></td>
+                <td>
+                    {% if practica.proxima_reunion %}
+                    {{ practica.proxima_reunion.fecha_hora|date:"d/m/Y H:i" }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="#" class="btn btn-primary">Ver Detalles</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Aún no tienes estudiantes asignados.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3 class="card-title">Próximas Reuniones</h3>
+    {% if reuniones_proximas %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Fecha y Hora</th>
+                <th>Estudiante</th>
+                <th>Tipo</th>
+                <th>Lugar</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reunion in reuniones_proximas %}
+            <tr>
+                <td>{{ reunion.fecha_hora|date:"d/m/Y H:i" }}</td>
+                <td>{{ reunion.estudiante.get_full_name }}</td>
+                <td>{{ reunion.get_tipo_display }}</td>
+                <td>{{ reunion.lugar|default:"Virtual" }}</td>
+                <td>
+                    <a href="#" class="btn btn-success">Marcar Realizada</a>
+                    <a href="#" class="btn btn-danger">Reprogramar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No tienes reuniones programadas.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3 class="card-title">Acciones Rápidas</h3>
+    <p>
+        <a href="#" class="btn btn-primary">Programar Reunión de Seguimiento</a>
+        <a href="#" class="btn btn-success">Programar Sustentación</a>
+        <a href="#" class="btn btn-primary">Ver Entregables de Estudiantes</a>
+    </p>
+</div>
+{% endblock %}

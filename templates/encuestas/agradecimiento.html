@@ -1,0 +1,105 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}¡Gracias por tu respuesta!{% endblock %}
+
+{% block sidebar_menu %}
+<div class="menu-section">
+    <h3>Encuestas</h3>
+    <a href="{% url 'encuestas_web:mis_pendientes' %}" class="menu-item">
+        <span>📋</span> Encuestas Pendientes
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="agradecimiento-container">
+    <div class="success-icon">✓</div>
+    <h1>¡Gracias por tu respuesta!</h1>
+    <p>Tu opinión es muy valiosa para nosotros y nos ayuda a mejorar continuamente el sistema de prácticas profesionales.</p>
+    
+    <div class="actions">
+        <a href="{% url 'encuestas_web:mis_pendientes' %}" class="btn-primary">
+            Ver Otras Encuestas
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn-secondary">
+            Volver al Dashboard
+        </a>
+    </div>
+</div>
+
+<style>
+    .agradecimiento-container {
+        max-width: 600px;
+        margin: 100px auto;
+        text-align: center;
+        background: white;
+        padding: 60px 40px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .success-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 30px;
+        background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        color: white;
+        font-size: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        animation: scaleIn 0.5s ease;
+    }
+    
+    @keyframes scaleIn {
+        from {
+            transform: scale(0);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    .agradecimiento-container h1 {
+        font-size: 32px;
+        color: #2c3e50;
+        margin-bottom: 20px;
+    }
+    
+    .agradecimiento-container p {
+        color: #7f8c8d;
+        font-size: 16px;
+        line-height: 1.8;
+        margin-bottom: 40px;
+    }
+    
+    .actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+    
+    .btn-secondary {
+        padding: 12px 24px;
+        background: #95a5a6;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: background 0.3s;
+    }
+    
+    .btn-secondary:hover {
+        background: #7f8c8d;
+    }
+    
+    .btn-primary {
+        padding: 12px 24px;
+    }
+</style>
+{% endblock %}

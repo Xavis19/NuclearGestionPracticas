@@ -1,0 +1,234 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Crear Encuesta{% endblock %}
+
+{% block sidebar_menu %}
+<div class="menu-section">
+    <h3>Encuestas</h3>
+    <a href="{% url 'encuestas_web:lista' %}" class="menu-item">
+        <span>📋</span> Lista de Encuestas
+    </a>
+    <a href="{% url 'encuestas_web:crear' %}" class="menu-item active">
+        <span>➕</span> Crear Encuesta
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Crear Nueva Encuesta</h1>
+    <p>Diseña una encuesta para recopilar retroalimentación</p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" id="formEncuesta">
+            {% csrf_token %}
+            
+            <!-- Información básica -->
+            <div class="form-section">
+                <h3>Información Básica</h3>
+                
+                <div class="form-group">
+                    <label for="titulo">Título de la Encuesta *</label>
+                    <input type="text" id="titulo" name="titulo" class="form-control" required maxlength="200">
+                </div>
+                
+                <div class="form-group">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" class="form-control" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dirigida_a">Dirigida a *</label>
+                    <select id="dirigida_a" name="dirigida_a" class="form-control" required>
+                        <option value="ESTUDIANTES">Estudiantes</option>
+                        <option value="TUTORES">Tutores Empresariales</option>
+                        <option value="DOCENTES">Docentes Asesores</option>
+                        <option value="TODOS">Todos los usuarios</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="es_anonima"> Encuesta anónima
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Preguntas -->
+            <div class="form-section">
+                <h3>Preguntas</h3>
+                <div id="preguntas-container"></div>
+                
+                <button type="button" class="btn-secondary" onclick="agregarPregunta()">
+                    ➕ Agregar Pregunta
+                </button>
+            </div>
+            
+            <input type="hidden" name="num_preguntas" id="num_preguntas" value="0">
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Crear Encuesta</button>
+                <a href="{% url 'encuestas_web:lista' %}" class="btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-section {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #ecf0f1;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+    
+    .form-actions {
+        margin-top: 30px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-secondary {
+        padding: 10px 20px;
+        background: #95a5a6;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-secondary:hover {
+        background: #7f8c8d;
+    }
+    
+    .pregunta-item {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    
+    .pregunta-item .remove-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+    
+    .pregunta-item h4 {
+        margin-bottom: 15px;
+        color: #2c3e50;
+    }
+    
+    .opciones-container {
+        margin-top: 10px;
+        padding: 10px;
+        background: white;
+        border-radius: 5px;
+    }
+</style>
+
+<script>
+let numPreguntas = 0;
+
+function agregarPregunta() {
+    const container = document.getElementById('preguntas-container');
+    const index = numPreguntas;
+    
+    const preguntaHTML = `
+        <div class="pregunta-item" id="pregunta_${index}">
+            <button type="button" class="remove-btn" onclick="eliminarPregunta(${index})">✕</button>
+            <h4>Pregunta ${index + 1}</h4>
+            
+            <div class="form-group">
+                <label>Texto de la pregunta *</label>
+                <textarea name="pregunta_${index}_texto" class="form-control" rows="2" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Tipo de pregunta *</label>
+                <select name="pregunta_${index}_tipo" class="form-control" onchange="mostrarOpciones(${index})" required>
+                    <option value="TEXTO_CORTO">Texto Corto</option>
+                    <option value="TEXTO_LARGO">Texto Largo</option>
+                    <option value="OPCION_MULTIPLE">Opción Múltiple</option>
+                    <option value="SELECCION_UNICA">Selección Única</option>
+                    <option value="ESCALA">Escala (1-5)</option>
+                    <option value="SI_NO">Sí/No</option>
+                </select>
+            </div>
+            
+            <div class="opciones-container" id="opciones_${index}" style="display: none;">
+                <label>Opciones (una por línea) *</label>
+                <textarea name="pregunta_${index}_opciones" class="form-control" rows="4" placeholder="Opción 1&#10;Opción 2&#10;Opción 3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="pregunta_${index}_requerida" checked> Pregunta requerida
+                </label>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', preguntaHTML);
+    numPreguntas++;
+    document.getElementById('num_preguntas').value = numPreguntas;
+}
+
+function eliminarPregunta(index) {
+    const elemento = document.getElementById(`pregunta_${index}`);
+    if (elemento) {
+        elemento.remove();
+    }
+}
+
+function mostrarOpciones(index) {
+    const select = document.querySelector(`select[name="pregunta_${index}_tipo"]`);
+    const opcionesDiv = document.getElementById(`opciones_${index}`);
+    
+    if (select.value === 'OPCION_MULTIPLE' || select.value === 'SELECCION_UNICA') {
+        opcionesDiv.style.display = 'block';
+    } else {
+        opcionesDiv.style.display = 'none';
+    }
+}
+
+// Agregar una pregunta por defecto al cargar
+window.addEventListener('DOMContentLoaded', function() {
+    agregarPregunta();
+});
+</script>
+{% endblock %}

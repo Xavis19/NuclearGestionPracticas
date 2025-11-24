@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.postgres',
+    # 'django.contrib.postgres',  # Comentado temporalmente (requiere psycopg2)
     
     # Third party apps
     'rest_framework',
@@ -69,6 +69,9 @@ INSTALLED_APPS = [
     'apps.cierre',
     'apps.practicas',
     'apps.observaciones',
+    'apps.entregables',      # Nueva app para gestión de entregables
+    'apps.reuniones',        # Nueva app para reuniones y sustentación
+    'apps.notificaciones',   # Nueva app para notificaciones
 ]
 
 MIDDLEWARE = [
@@ -167,7 +170,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
@@ -252,18 +255,19 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 
 # Celery Beat Schedule
-from celery.schedules import crontab
+# Comentado temporalmente hasta instalar celery
+# from celery.schedules import crontab
 
-CELERY_BEAT_SCHEDULE = {
-    'enviar-recordatorios-reportes-semanales': {
-        'task': 'apps.seguimiento.tasks.enviar_recordatorios_reportes',
-        'schedule': crontab(hour=8, minute=0, day_of_week=1),  # Lunes 8:00 AM
-    },
-    'enviar-recordatorios-encuestas': {
-        'task': 'apps.encuestas.tasks.enviar_recordatorios_encuestas',
-        'schedule': crontab(hour=10, minute=0, day_of_week='*'),  # Diario 10:00 AM
-    },
-}
+# CELERY_BEAT_SCHEDULE = {
+#     'enviar-recordatorios-reportes-semanales': {
+#         'task': 'apps.seguimiento.tasks.enviar_recordatorios_reportes',
+#         'schedule': crontab(hour=8, minute=0, day_of_week=1),  # Lunes 8:00 AM
+#     },
+#     'enviar-recordatorios-encuestas': {
+#         'task': 'apps.encuestas.tasks.enviar_recordatorios_encuestas',
+#         'schedule': crontab(hour=10, minute=0, day_of_week='*'),  # Diario 10:00 AM
+#     },
+# }
 
 # Cache Configuration (Redis)
 CACHES = {

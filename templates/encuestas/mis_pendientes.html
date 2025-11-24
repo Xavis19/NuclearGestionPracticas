@@ -1,0 +1,142 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Mis Encuestas Pendientes{% endblock %}
+
+{% block sidebar_menu %}
+<div class="menu-section">
+    <h3>Encuestas</h3>
+    <a href="{% url 'encuestas_web:mis_pendientes' %}" class="menu-item active">
+        <span>📋</span> Encuestas Pendientes
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Mis Encuestas Pendientes</h1>
+    <p>Tienes {{ encuestas|length }} encuesta(s) por responder</p>
+</div>
+
+{% if encuestas %}
+    {% for encuesta in encuestas %}
+    <div class="card encuesta-card">
+        <div class="card-body">
+            <div class="encuesta-header">
+                <div>
+                    <h2>{{ encuesta.titulo }}</h2>
+                    {% if encuesta.descripcion %}
+                        <p class="encuesta-descripcion">{{ encuesta.descripcion }}</p>
+                    {% endif %}
+                </div>
+                <div class="encuesta-badges">
+                    <span class="badge badge-info">{{ encuesta.get_dirigida_a_display }}</span>
+                    {% if encuesta.es_anonima %}
+                        <span class="badge badge-success">Anónima</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="encuesta-info">
+                <div class="info-item">
+                    <span class="info-icon">📝</span>
+                    <span>{{ encuesta.preguntas.count }} preguntas</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">👥</span>
+                    <span>{{ encuesta.respuestas.count }} personas han respondido</span>
+                </div>
+                {% if encuesta.fecha_cierre %}
+                <div class="info-item">
+                    <span class="info-icon">⏰</span>
+                    <span>Cierra el {{ encuesta.fecha_cierre|date:"d/m/Y" }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="encuesta-actions">
+                <a href="{% url 'encuestas_web:responder' encuesta.pk %}" class="btn-primary">
+                    Responder Encuesta →
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <div class="card-body" style="text-align: center; padding: 60px 20px;">
+            <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
+            <h2 style="color: #2c3e50; margin-bottom: 10px;">¡Todo al día!</h2>
+            <p style="color: #7f8c8d;">No tienes encuestas pendientes por responder en este momento.</p>
+        </div>
+    </div>
+{% endif %}
+
+<style>
+    .encuesta-card {
+        margin-bottom: 20px;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .encuesta-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .encuesta-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #ecf0f1;
+    }
+    
+    .encuesta-header h2 {
+        font-size: 22px;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+    
+    .encuesta-descripcion {
+        color: #7f8c8d;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    
+    .encuesta-badges {
+        display: flex;
+        gap: 10px;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    
+    .encuesta-info {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #7f8c8d;
+        font-size: 14px;
+    }
+    
+    .info-icon {
+        font-size: 18px;
+    }
+    
+    .encuesta-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+    
+    .dashboard-header p {
+        margin-top: 5px;
+        color: #7f8c8d;
+    }
+</style>
+{% endblock %}

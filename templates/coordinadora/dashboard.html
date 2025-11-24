@@ -1,0 +1,232 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Dashboard - Coordinadora{% endblock %}
+
+{% block sidebar_menu %}
+<!-- Menú lateral para Coordinadora -->
+<div class="menu-section">
+    <h3>Gestión</h3>
+    <a href="{% url 'coordinadora:estudiantes' %}" class="menu-item">
+        <span>👥</span> Estudiantes
+    </a>
+    <a href="{% url 'coordinadora:docentes' %}" class="menu-item">
+        <span>👨‍🏫</span> Docentes Asesores
+    </a>
+    <a href="{% url 'coordinadora:tutores' %}" class="menu-item">
+        <span>👨‍💼</span> Tutores Empresariales
+    </a>
+    <a href="{% url 'coordinadora:empresas' %}" class="menu-item">
+        <span>🏢</span> Empresas
+    </a>
+</div>
+
+<div class="menu-section">
+    <h3>Prácticas</h3>
+    <a href="{% url 'coordinadora:practicas-activas' %}" class="menu-item">
+        <span>📊</span> Prácticas Activas
+    </a>
+    <a href="{% url 'coordinadora:asignar-practica' %}" class="menu-item">
+        <span>➕</span> Asignar Práctica
+    </a>
+    <a href="{% url 'coordinadora:cerrar-practicas' %}" class="menu-item">
+        <span>✔️</span> Cerrar Prácticas
+    </a>
+</div>
+
+<div class="menu-section">
+    <h3>Vacantes</h3>
+    <a href="{% url 'vacantes:lista' %}" class="menu-item">
+        <span>📋</span> Ver Vacantes
+    </a>
+    <a href="{% url 'vacantes:crear' %}" class="menu-item">
+        <span>➕</span> Nueva Vacante
+    </a>
+</div>
+
+<div class="menu-section">
+    <h3>Comunicación</h3>
+    <a href="{% url 'notificaciones:enviar' %}" class="menu-item">
+        <span>📧</span> Enviar Notificación
+    </a>
+    <a href="{% url 'notificaciones:masiva' %}" class="menu-item">
+        <span>📢</span> Notificación Masiva
+    </a>
+    <a href="{% url 'notificaciones:historial' %}" class="menu-item">
+        <span>📜</span> Historial
+    </a>
+</div>
+
+<div class="menu-section">
+    <h3>Encuestas</h3>
+    <a href="{% url 'encuestas:crear' %}" class="menu-item">
+        <span>📝</span> Crear Encuesta
+    </a>
+    <a href="{% url 'encuestas:resultados' %}" class="menu-item">
+        <span>📊</span> Ver Resultados
+    </a>
+</div>
+
+<div class="menu-section">
+    <h3>Reportes</h3>
+    <a href="{% url 'reportes:general' %}" class="menu-item">
+        <span>📈</span> Reporte General
+    </a>
+    <a href="{% url 'reportes:estadisticas' %}" class="menu-item">
+        <span>📊</span> Estadísticas
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Panel de Coordinación</h1>
+    <p>Gestión de Prácticas Profesionales</p>
+</div>
+
+<!-- Estadísticas generales -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>{{ total_estudiantes }}</h3>
+        <p>Estudiantes Totales</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ practicas_activas }}</h3>
+        <p>Prácticas Activas</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ empresas_activas }}</h3>
+        <p>Empresas Vinculadas</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ vacantes_disponibles }}</h3>
+        <p>Vacantes Disponibles</p>
+    </div>
+</div>
+
+<!-- Acciones rápidas -->
+<div class="card">
+    <div class="card-header">
+        <h2>Acciones Rápidas</h2>
+    </div>
+    <div class="card-body">
+        <div class="quick-actions">
+            <a href="{% url 'coordinadora:asignar-practica' %}" class="action-btn">
+                <span>➕</span> Asignar Nueva Práctica
+            </a>
+            <a href="{% url 'notificaciones:masiva' %}" class="action-btn">
+                <span>📢</span> Enviar Notificación Masiva
+            </a>
+            <a href="{% url 'encuestas:crear' %}" class="action-btn">
+                <span>📝</span> Crear Encuesta
+            </a>
+            <a href="{% url 'reportes:general' %}" class="action-btn">
+                <span>📊</span> Generar Reporte
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Prácticas que requieren atención -->
+<div class="card">
+    <div class="card-header">
+        <h2>Prácticas que Requieren Atención</h2>
+    </div>
+    <div class="card-body">
+        <table>
+            <thead>
+                <tr>
+                    <th>Estudiante</th>
+                    <th>Empresa</th>
+                    <th>Docente Asesor</th>
+                    <th>Estado</th>
+                    <th>Alerta</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for practica in practicas_alerta %}
+                <tr>
+                    <td>{{ practica.estudiante.get_full_name }}</td>
+                    <td>{{ practica.empresa.nombre }}</td>
+                    <td>{{ practica.docente_asesor.get_full_name }}</td>
+                    <td>
+                        <span class="badge badge-info">{{ practica.get_estado_display }}</span>
+                    </td>
+                    <td>
+                        <span class="badge badge-warning">{{ practica.alerta }}</span>
+                    </td>
+                    <td>
+                        <a href="{% url 'practicas:detalle' practica.id %}" class="btn-action">Ver</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center;">No hay prácticas que requieran atención</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Resumen de calificaciones (SOLO VISTA, NO PUEDE MODIFICAR) -->
+<div class="card">
+    <div class="card-header">
+        <h2>Resumen de Calificaciones</h2>
+        <span class="badge badge-info">Solo Lectura</span>
+    </div>
+    <div class="card-body">
+        <table>
+            <thead>
+                <tr>
+                    <th>Estudiante</th>
+                    <th>Empresa</th>
+                    <th>Entregables Evaluados</th>
+                    <th>Promedio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for estudiante in estudiantes_con_notas %}
+                <tr>
+                    <td>{{ estudiante.nombre }}</td>
+                    <td>{{ estudiante.empresa }}</td>
+                    <td>{{ estudiante.entregables_evaluados }}/{{ estudiante.total_entregables }}</td>
+                    <td>
+                        <strong>{{ estudiante.promedio|floatformat:1 }}</strong>
+                    </td>
+                    <td>
+                        <a href="{% url 'coordinadora:ver-notas' estudiante.id %}" class="btn-action">Ver Detalle</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">No hay calificaciones disponibles</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p class="note"><strong>Nota:</strong> Las calificaciones solo pueden ser modificadas por el Tutor Empresarial.</p>
+    </div>
+</div>
+
+<!-- Actividad reciente del sistema -->
+<div class="card">
+    <div class="card-header">
+        <h2>Actividad Reciente del Sistema</h2>
+    </div>
+    <div class="card-body">
+        <ul class="activity-list">
+            {% for actividad in actividades_recientes %}
+            <li>
+                <span class="activity-date">{{ actividad.fecha|date:"d/m/Y H:i" }}</span>
+                <span class="activity-user">{{ actividad.usuario }}</span>
+                <span class="activity-text">{{ actividad.descripcion }}</span>
+            </li>
+            {% empty %}
+            <li>No hay actividad reciente</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

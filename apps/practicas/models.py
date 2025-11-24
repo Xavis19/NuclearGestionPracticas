@@ -1,6 +1,6 @@
 """
 Modelos para la app de prácticas.
-RF-013: Asignación de Profesor y Empresa
+RF-013: Asignación de Docente Asesor, Tutor Empresarial y Empresa
 """
 
 from django.db import models
@@ -12,7 +12,7 @@ from apps.vacantes.models import Empresa
 class Practica(models.Model):
     """
     Modelo para Prácticas Profesionales.
-    RF-013: Asignación de profesor y empresa por coordinadora.
+    RF-013: Asignación de docente asesor, tutor empresarial y empresa por coordinadora.
     """
     
     # Estados
@@ -38,14 +38,25 @@ class Practica(models.Model):
         limit_choices_to={'role': User.ESTUDIANTE},
         verbose_name='Estudiante'
     )
-    profesor = models.ForeignKey(
+    docente_asesor = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='practicas_supervisadas',
-        limit_choices_to={'role': User.PROFESOR},
-        verbose_name='Profesor Asignado'
+        related_name='practicas_asesoradas',
+        limit_choices_to={'role': User.DOCENTE_ASESOR},
+        verbose_name='Docente Asesor',
+        help_text='Docente que hace seguimiento al estudiante'
+    )
+    tutor_empresarial = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='practicas_tutoradas',
+        limit_choices_to={'role': User.TUTOR_EMPRESARIAL},
+        verbose_name='Tutor Empresarial',
+        help_text='Tutor de la empresa que evalúa al estudiante'
     )
     empresa = models.ForeignKey(
         Empresa,
@@ -54,6 +65,25 @@ class Practica(models.Model):
         blank=True,
         related_name='practicas',
         verbose_name='Empresa'
+    )
+    
+    # Información de sustentación
+    fecha_sustentacion = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Fecha de Sustentación',
+        help_text='Fecha programada por el docente asesor para la sustentación'
+    )
+    lugar_sustentacion = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name='Lugar de Sustentación'
+    )
+    observaciones_sustentacion = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Observaciones de Sustentación'
     )
     
     # Información de la práctica
@@ -113,8 +143,18 @@ class Practica(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         related_name='practicas_asignadas',
-        limit_choices_to={'role': User.COORDINADOR},
+        limit_choices_to={'role': User.COORDINADORA_EMPRESARIAL},
         verbose_name='Asignada por'
+    )
+    cerrada_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='practicas_cerradas',
+        limit_choices_to={'role': User.COORDINADORA_EMPRESARIAL},
+        verbose_name='Cerrada por',
+        help_text='Coordinadora que cierra la práctica'
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -131,7 +171,8 @@ class Practica(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['estudiante', 'estado']),
-            models.Index(fields=['profesor', 'estado']),
+            models.Index(fields=['docente_asesor', 'estado']),
+            models.Index(fields=['tutor_empresarial', 'estado']),
             models.Index(fields=['empresa', 'estado']),
             models.Index(fields=['estado', 'created_at']),
         ]
@@ -164,9 +205,9 @@ class Practica(models.Model):
                     'fecha_fin': 'La fecha de fin debe ser posterior a la fecha de inicio.'
                 })
     
-    def asignar(self, profesor, empresa, asignada_por):
+    def asignar(self, docente_asesor, tutor_empresarial, empresa, asignada_por):
         """
-        Asignar profesor y empresa a la práctica.
+        Asignar docente asesor, tutor empresarial y empresa a la práctica.
         RF-013: Solo coordinadora puede asignar.
         """
         from django.conf import settings
@@ -176,21 +217,26 @@ class Practica(models.Model):
         if not empresa.activa:
             raise ValidationError('La empresa debe estar activa.')
         
-        # Validar cupo del profesor
+        # Validar que el tutor empresarial pertenezca a la empresa
+        if tutor_empresarial.empresa != empresa:
+            raise ValidationError('El tutor empresarial debe pertenecer a la empresa asignada.')
+        
+        # Validar cupo del docente asesor
         practicas_activas = Practica.objects.filter(
-            profesor=profesor,
+            docente_asesor=docente_asesor,
             estado__in=[self.ASIGNADA, self.EN_CURSO]
         ).count()
         
-        max_estudiantes = getattr(settings, 'MAX_ESTUDIANTES_POR_PROFESOR', 10)
+        max_estudiantes = getattr(settings, 'MAX_ESTUDIANTES_POR_DOCENTE', 10)
         
         if practicas_activas >= max_estudiantes:
             raise ValidationError(
-                f'El profesor ya tiene el máximo de {max_estudiantes} estudiantes asignados.'
+                f'El docente asesor ya tiene el máximo de {max_estudiantes} estudiantes asignados.'
             )
         
         # Asignar
-        self.profesor = profesor
+        self.docente_asesor = docente_asesor
+        self.tutor_empresarial = tutor_empresarial
         self.empresa = empresa
         self.asignada_por = asignada_por
         self.estado = self.ASIGNADA
@@ -225,3 +271,20 @@ class Practica(models.Model):
         """Cancelar la práctica."""
         self.estado = self.CANCELADA
         self.save()
+    
+    def calcular_progreso(self):
+        """
+        Calcula el progreso de la práctica basado en entregables evaluados.
+        Retorna un valor entre 0 y 100.
+        """
+        total_entregables = self.entregables.count()
+        if total_entregables == 0:
+            return 0
+        
+        evaluados = self.entregables.filter(calificacion__isnull=False).count()
+        return round((evaluados / total_entregables) * 100)
+    
+    @property
+    def progreso(self):
+        """Alias para calcular_progreso()"""
+        return self.calcular_progreso()

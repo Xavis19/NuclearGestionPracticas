@@ -29,7 +29,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
-        extra_fields.setdefault('role', User.COORDINADOR)
+        extra_fields.setdefault('role', User.COORDINADORA_EMPRESARIAL)
         
         if extra_fields.get('is_staff') is not True:
             raise ValueError('El superusuario debe tener is_staff=True.')
@@ -42,18 +42,20 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     """
     Custom User model con roles.
-    Roles: COORDINADOR, PROFESOR, ESTUDIANTE
+    Roles: ESTUDIANTE, DOCENTE_ASESOR, TUTOR_EMPRESARIAL, COORDINADORA_EMPRESARIAL
     """
     
     # Roles
-    COORDINADOR = 'COORDINADOR'
-    PROFESOR = 'PROFESOR'
     ESTUDIANTE = 'ESTUDIANTE'
+    DOCENTE_ASESOR = 'DOCENTE_ASESOR'
+    TUTOR_EMPRESARIAL = 'TUTOR_EMPRESARIAL'
+    COORDINADORA_EMPRESARIAL = 'COORDINADORA_EMPRESARIAL'
     
     ROLE_CHOICES = [
-        (COORDINADOR, 'Coordinador'),
-        (PROFESOR, 'Profesor'),
         (ESTUDIANTE, 'Estudiante'),
+        (DOCENTE_ASESOR, 'Docente Asesor'),
+        (TUTOR_EMPRESARIAL, 'Tutor Empresarial'),
+        (COORDINADORA_EMPRESARIAL, 'Coordinadora Empresarial'),
     ]
     
     # Validators
@@ -66,7 +68,7 @@ class User(AbstractUser):
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(_('email address'), unique=True)
     role = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=ROLE_CHOICES,
         default=ESTUDIANTE,
         verbose_name='Rol'
@@ -110,7 +112,7 @@ class User(AbstractUser):
         verbose_name='Promedio'
     )
     
-    # Para profesores
+    # Para docentes asesores
     departamento = models.CharField(
         max_length=200,
         blank=True,
@@ -122,6 +124,24 @@ class User(AbstractUser):
         blank=True,
         null=True,
         verbose_name='Especialidad'
+    )
+    
+    # Para tutores empresariales (se relacionarán con Empresa)
+    empresa = models.ForeignKey(
+        'vacantes.Empresa',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tutores_empresariales',
+        verbose_name='Empresa',
+        help_text='Empresa a la que pertenece el tutor empresarial'
+    )
+    puesto = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name='Puesto',
+        help_text='Cargo del tutor en la empresa'
     )
     
     # Metadata
@@ -151,14 +171,19 @@ class User(AbstractUser):
         return f"{self.first_name} {self.last_name}".strip()
     
     @property
-    def is_coordinador(self):
-        """Check if user is coordinator."""
-        return self.role == self.COORDINADOR
+    def is_coordinadora(self):
+        """Check if user is coordinadora empresarial."""
+        return self.role == self.COORDINADORA_EMPRESARIAL
     
     @property
-    def is_profesor(self):
-        """Check if user is professor."""
-        return self.role == self.PROFESOR
+    def is_docente_asesor(self):
+        """Check if user is docente asesor."""
+        return self.role == self.DOCENTE_ASESOR
+    
+    @property
+    def is_tutor_empresarial(self):
+        """Check if user is tutor empresarial."""
+        return self.role == self.TUTOR_EMPRESARIAL
     
     @property
     def is_estudiante(self):
@@ -180,8 +205,12 @@ class User(AbstractUser):
             self.semestre = None
             self.promedio = None
         
-        if self.role != self.PROFESOR:
+        if self.role != self.DOCENTE_ASESOR:
             self.departamento = None
             self.especialidad = None
+        
+        if self.role != self.TUTOR_EMPRESARIAL:
+            self.empresa = None
+            self.puesto = None
         
         super().save(*args, **kwargs)

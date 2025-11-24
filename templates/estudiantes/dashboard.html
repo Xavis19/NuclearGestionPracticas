@@ -1,0 +1,202 @@
+{% extends 'dashboard_base.html' %}
+
+{% block page_title %}Dashboard - Estudiante{% endblock %}
+
+{% block sidebar_menu %}
+<div class="menu-section">
+    <div class="menu-section-title">Principal</div>
+    <a href="{% url 'dashboard' %}" class="menu-item active">
+        <span class="menu-item-icon">📊</span>
+        Dashboard
+    </a>
+</div>
+
+<div class="menu-section">
+    <div class="menu-section-title">Mi Práctica</div>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">💼</span>
+        Mi Práctica Actual
+    </a>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">🏢</span>
+        Empresa Asignada
+    </a>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">👨‍🏫</span>
+        Docente Asesor
+    </a>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">👔</span>
+        Tutor Empresarial
+    </a>
+</div>
+
+<div class="menu-section">
+    <div class="menu-section-title">Vacantes</div>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">🔍</span>
+        Ver Vacantes
+    </a>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">📝</span>
+        Mis Postulaciones
+    </a>
+</div>
+
+<div class="menu-section">
+    <div class="menu-section-title">Entregables</div>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">📁</span>
+        Mis Entregables
+    </a>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">⬆️</span>
+        Subir Entregable
+    </a>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">📊</span>
+        Ver Notas
+    </a>
+</div>
+
+<div class="menu-section">
+    <div class="menu-section-title">Reuniones</div>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">📅</span>
+        Mis Reuniones
+    </a>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">🎓</span>
+        Mi Sustentación
+    </a>
+</div>
+
+<div class="menu-section">
+    <div class="menu-section-title">Comunicación</div>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">📧</span>
+        Notificaciones
+    </a>
+    <a href="#" class="menu-item">
+        <span class="menu-item-icon">📋</span>
+        Encuestas
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ practica.estado|default:"Sin asignar" }}</div>
+        <div class="stat-label">Estado de Práctica</div>
+    </div>
+    <div class="stat-card warning">
+        <div class="stat-value">{{ entregables_pendientes|default:0 }}</div>
+        <div class="stat-label">Entregables Pendientes</div>
+    </div>
+    <div class="stat-card success">
+        <div class="stat-value">{{ promedio_calificaciones|default:"N/A" }}</div>
+        <div class="stat-label">Promedio de Notas</div>
+    </div>
+    <div class="stat-card danger">
+        <div class="stat-value">{{ notificaciones_sin_leer|default:0 }}</div>
+        <div class="stat-label">Notificaciones Sin Leer</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="card-title">Información de Mi Práctica</h3>
+    {% if practica %}
+    <table class="table">
+        <tr>
+            <td><strong>Empresa:</strong></td>
+            <td>{{ practica.empresa.nombre }}</td>
+        </tr>
+        <tr>
+            <td><strong>Docente Asesor:</strong></td>
+            <td>{{ practica.docente_asesor.get_full_name }}</td>
+        </tr>
+        <tr>
+            <td><strong>Tutor Empresarial:</strong></td>
+            <td>{{ practica.tutor_empresarial.get_full_name }}</td>
+        </tr>
+        <tr>
+            <td><strong>Fecha de Inicio:</strong></td>
+            <td>{{ practica.fecha_inicio|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+            <td><strong>Fecha de Fin:</strong></td>
+            <td>{{ practica.fecha_fin|date:"d/m/Y" }}</td>
+        </tr>
+    </table>
+    {% else %}
+    <p>Aún no tienes una práctica asignada. Consulta las vacantes disponibles.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3 class="card-title">Próximas Reuniones</h3>
+    {% if reuniones_proximas %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Lugar</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reunion in reuniones_proximas %}
+            <tr>
+                <td>{{ reunion.fecha_hora|date:"d/m/Y H:i" }}</td>
+                <td>{{ reunion.get_tipo_display }}</td>
+                <td>{{ reunion.lugar|default:"-" }}</td>
+                <td><span class="badge badge-info">{{ reunion.get_estado_display }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No tienes reuniones programadas.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3 class="card-title">Entregables Recientes</h3>
+    {% if entregables_recientes %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Fecha Límite</th>
+                <th>Estado</th>
+                <th>Calificación</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entregable in entregables_recientes %}
+            <tr>
+                <td>{{ entregable.titulo }}</td>
+                <td>{{ entregable.fecha_limite|date:"d/m/Y" }}</td>
+                <td>
+                    {% if entregable.estado == 'APROBADO' %}
+                    <span class="badge badge-success">{{ entregable.get_estado_display }}</span>
+                    {% elif entregable.estado == 'RECHAZADO' %}
+                    <span class="badge badge-danger">{{ entregable.get_estado_display }}</span>
+                    {% elif entregable.estado == 'PENDIENTE' %}
+                    <span class="badge badge-warning">{{ entregable.get_estado_display }}</span>
+                    {% else %}
+                    <span class="badge badge-info">{{ entregable.get_estado_display }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ entregable.calificacion|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No tienes entregables registrados.</p>
+    {% endif %}
+</div>
+{% endblock %}

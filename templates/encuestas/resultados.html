@@ -1,0 +1,259 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Resultados - {{ encuesta.titulo }}{% endblock %}
+
+{% block sidebar_menu %}
+<div class="menu-section">
+    <h3>Encuestas</h3>
+    <a href="{% url 'encuestas_web:lista' %}" class="menu-item">
+        <span>📋</span> Lista de Encuestas
+    </a>
+    <a href="{% url 'encuestas_web:crear' %}" class="menu-item">
+        <span>➕</span> Crear Encuesta
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>{{ encuesta.titulo }}</h1>
+    <span class="badge badge-info">{{ encuesta.get_estado_display }}</span>
+</div>
+
+<!-- Estadísticas generales -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>{{ total_respuestas }}</h3>
+        <p>Total de Respuestas</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ tasa_respuesta }}%</h3>
+        <p>Tasa de Respuesta</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ encuesta.preguntas.count }}</h3>
+        <p>Preguntas</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ encuesta.get_dirigida_a_display }}</h3>
+        <p>Dirigida a</p>
+    </div>
+</div>
+
+<!-- Resultados por pregunta -->
+{% for resultado in resultados %}
+<div class="card">
+    <div class="card-header">
+        <h2>{{ forloop.counter }}. {{ resultado.pregunta.texto }}</h2>
+        <span class="badge badge-info">{{ resultado.pregunta.get_tipo_display }}</span>
+    </div>
+    <div class="card-body">
+        {% if resultado.tipo == 'escala' %}
+            <div class="resultado-escala">
+                <div class="promedio-grande">
+                    <span class="valor">{{ resultado.promedio }}</span>
+                    <span class="label">Promedio</span>
+                </div>
+                
+                <div class="distribucion">
+                    <h4>Distribución de Respuestas</h4>
+                    {% for valor, count in resultado.distribucion.items %}
+                    <div class="barra-container">
+                        <span class="barra-label">{{ valor }} estrellas</span>
+                        <div class="barra">
+                            <div class="barra-fill" style="width: {% widthratio count total_respuestas 100 %}%"></div>
+                        </div>
+                        <span class="barra-count">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        
+        {% elif resultado.tipo == 'opciones' %}
+            <div class="resultado-opciones">
+                {% for opcion, count in resultado.respuestas.items %}
+                <div class="barra-container">
+                    <span class="barra-label">{{ opcion }}</span>
+                    <div class="barra">
+                        <div class="barra-fill" style="width: {% widthratio count total_respuestas 100 %}%"></div>
+                    </div>
+                    <span class="barra-count">{{ count }} ({% widthratio count total_respuestas 100 %}%)</span>
+                </div>
+                {% endfor %}
+            </div>
+        
+        {% elif resultado.tipo == 'si_no' %}
+            <div class="resultado-si-no">
+                <div class="pie-chart">
+                    <div class="pie-item" style="background: #2ecc71;">
+                        <h3>{{ resultado.si }}</h3>
+                        <p>Sí ({% widthratio resultado.si total_respuestas 100 %}%)</p>
+                    </div>
+                    <div class="pie-item" style="background: #e74c3c;">
+                        <h3>{{ resultado.no }}</h3>
+                        <p>No ({% widthratio resultado.no total_respuestas 100 %}%)</p>
+                    </div>
+                </div>
+            </div>
+        
+        {% elif resultado.tipo == 'texto' %}
+            <div class="resultado-texto">
+                <div class="respuestas-lista">
+                    {% for respuesta in resultado.respuestas %}
+                        {% if respuesta %}
+                        <div class="respuesta-item">
+                            <span class="respuesta-icon">💬</span>
+                            <p>{{ respuesta }}</p>
+                        </div>
+                        {% endif %}
+                    {% empty %}
+                        <p style="text-align: center; color: #95a5a6;">No hay respuestas de texto</p>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+<div style="margin-top: 20px;">
+    <a href="{% url 'encuestas_web:lista' %}" class="btn-secondary">← Volver a la Lista</a>
+</div>
+
+<style>
+    .resultado-escala {
+        display: flex;
+        gap: 40px;
+        align-items: flex-start;
+    }
+    
+    .promedio-grande {
+        text-align: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        min-width: 150px;
+    }
+    
+    .promedio-grande .valor {
+        display: block;
+        font-size: 48px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .promedio-grande .label {
+        display: block;
+        font-size: 14px;
+        opacity: 0.9;
+    }
+    
+    .distribucion {
+        flex: 1;
+    }
+    
+    .distribucion h4 {
+        margin-bottom: 20px;
+        color: #2c3e50;
+    }
+    
+    .barra-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .barra-label {
+        min-width: 150px;
+        font-size: 14px;
+        color: #2c3e50;
+    }
+    
+    .barra {
+        flex: 1;
+        height: 30px;
+        background: #ecf0f1;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .barra-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #3498db 0%, #2ecc71 100%);
+        transition: width 0.5s ease;
+    }
+    
+    .barra-count {
+        min-width: 60px;
+        text-align: right;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .pie-chart {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .pie-item {
+        text-align: center;
+        padding: 30px 50px;
+        border-radius: 10px;
+        color: white;
+    }
+    
+    .pie-item h3 {
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+    
+    .pie-item p {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+    
+    .respuestas-lista {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .respuesta-item {
+        display: flex;
+        gap: 15px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-left: 3px solid #3498db;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+    
+    .respuesta-icon {
+        font-size: 20px;
+    }
+    
+    .respuesta-item p {
+        flex: 1;
+        margin: 0;
+        color: #2c3e50;
+    }
+    
+    .btn-secondary {
+        padding: 10px 20px;
+        background: #95a5a6;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-secondary:hover {
+        background: #7f8c8d;
+    }
+</style>
+{% endblock %}
